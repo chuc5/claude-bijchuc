@@ -214,9 +214,60 @@ export class TablaDetalleLiquidacionesComponentpresupuesto implements OnInit, On
 
         const detalleAEditar = detalles[index];
         this.indexEnEdicion = index;
-        this.registroEnEdicion = detalleAEditar ? { ...detalleAEditar } : null;
-        this.modoModal.set('editar');
-        this.mostrarModalDetalle.set(true);
+
+        // Si el detalle tiene ID, cargar datos completos desde el servidor
+        if (detalleAEditar.id) {
+            this.cargandoDetalle = true;
+
+            Swal.fire({
+                title: 'Cargando datos...',
+                html: 'Obteniendo información completa del registro',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            this.service.obtenerDetalleCompleto(detalleAEditar.id).subscribe({
+                next: (response) => {
+                    Swal.close();
+                    this.cargandoDetalle = false;
+
+                    if (response && response.respuesta === 'success' && response.datos) {
+                        console.log('[TABLA] Detalle completo obtenido:', response.datos);
+                        // Usar el detalle completo que incluye datos_especificos
+                        this.registroEnEdicion = { ...response.datos };
+                        this.modoModal.set('editar');
+                        this.mostrarModalDetalle.set(true);
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo cargar el detalle completo'
+                        });
+                    }
+                },
+                error: () => {
+                    Swal.close();
+                    this.cargandoDetalle = false;
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Advertencia',
+                        text: 'Error al cargar el detalle. Intentando con datos disponibles...'
+                    });
+                    // Fallback: usar datos básicos si falla la petición
+                    this.registroEnEdicion = detalleAEditar ? { ...detalleAEditar } : null;
+                    this.modoModal.set('editar');
+                    this.mostrarModalDetalle.set(true);
+                }
+            });
+        } else {
+            // Si no tiene ID, es un registro nuevo sin guardar
+            this.registroEnEdicion = detalleAEditar ? { ...detalleAEditar } : null;
+            this.modoModal.set('editar');
+            this.mostrarModalDetalle.set(true);
+        }
     }
 
     confirmarEliminacion(): void {
