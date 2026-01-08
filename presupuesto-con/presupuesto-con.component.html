@@ -1,0 +1,118 @@
+<div class="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div class="w-full mx-auto space-y-4 p-4">
+
+        <!-- Header Actualizado con Información de Días Hábiles -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900 dark:text-white">Por Presupuesto</h1>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">Gestión completa de órdenes, facturas y
+                        liquidaciones</p>
+                </div>
+                <div class="flex items-center space-x-4">
+
+                    <!-- Resumen de Órdenes -->
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">Total Órdenes</div>
+                        <div class="text-lg font-semibold text-gray-900 dark:text-white">{{
+                            resumenOrdenes().totalOrdenes }}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">Con Anticipos Pendientes</div>
+                        <div class="text-lg font-semibold text-red-600 dark:text-red-400">{{
+                            resumenOrdenes().ordenesConPendientes }}</div>
+                    </div>
+
+                    <!-- Separador -->
+                    <div class="h-8 w-px bg-gray-300 dark:bg-gray-600"></div>
+
+                    <!-- Resumen de Facturas -->
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">Factura Actual</div>
+                        <div class="text-lg font-semibold"
+                            [ngClass]="facturaActual() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'">
+                            {{ facturaActual()?.numero_dte || 'Ninguna' }}
+                        </div>
+                    </div>
+
+                    <!-- Resumen de Liquidaciones -->
+                    <div *ngIf="facturaActual()" class="text-right">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">Detalles Liquidación</div>
+                        <div class="text-lg font-semibold" [ngClass]="obtenerClaseEstadoLiquidacion()">
+                            {{ resumenLiquidaciones().cantidad }} / Q{{ resumenLiquidaciones().total | number:'1.2-2' }}
+                        </div>
+                    </div>
+
+                    <!-- NUEVO: Indicador de Días Hábiles -->
+                    <div *ngIf="obtenerInfoDiasHabiles() as diasInfo" class="text-right">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">Estado Tiempo</div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            {{ diasInfo.diasTranscurridos }}/{{ diasInfo.totalPermitido }} días
+                        </div>
+                    </div>
+
+                    <!-- Botón refrescar todo -->
+                    <button (click)="refrescarTodo()" [disabled]="estaOcupado()"
+                        class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                        title="Refrescar todos los datos">
+                        <svg class="w-4 h-4 mr-2" [class.animate-spin]="estaOcupado()" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        {{ estaOcupado() ? 'Cargando...' : 'Refrescar' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido Principal -->
+        <div class="space-y-4">
+
+            <!-- Primera fila: Órdenes y Facturas -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+                <!-- Panel de Órdenes -->
+                <div class="lg:col-span-1">
+                    <app-ordenes-plan-empresarial-simple-presupuesto></app-ordenes-plan-empresarial-simple-presupuesto>
+                </div>
+
+                <!-- Panel de Facturas -->
+                <div class="lg:col-span-1">
+                    <app-facturas-gestion-presupuesto></app-facturas-gestion-presupuesto>
+                </div>
+
+            </div>
+
+            <!-- Segunda fila: Liquidaciones - Componente autónomo -->
+            <div class="w-full">
+                <app-detalle-liquidizaciones-pe-presupuesto></app-detalle-liquidizaciones-pe-presupuesto>
+            </div>
+
+        </div>
+
+        <!-- Footer informativo - ACTUALIZADO -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3">
+            <div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+                <span>
+                    Última actualización: {{ fechaUltimaActualizacion() | date:'dd/MM/yyyy HH:mm:ss' }}
+                </span>
+                <div class="flex items-center space-x-4">
+                    <span>Sistema integrado: Órdenes + Facturas + Liquidaciones</span>
+
+                    <!-- NUEVO: Estado de días hábiles en footer -->
+                    <span *ngIf="obtenerInfoDiasHabiles() as diasInfo" class="text-xs">
+                        Días hábiles: {{ diasInfo.estadoTiempo }}
+                    </span>
+
+                    <span class="flex items-center space-x-1">
+                        <div class="w-2 h-2 rounded-full transition-colors duration-200"
+                            [ngClass]="estaOcupado() ? 'bg-yellow-500' : 'bg-green-500'"></div>
+                        <span>{{ estaOcupado() ? 'Procesando' : 'Activo' }}</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

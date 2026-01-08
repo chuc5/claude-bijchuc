@@ -1,0 +1,125 @@
+<!-- Modal con cierre al hacer clic fuera -->
+<div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50"
+    (click)="onBackdropClick($event)">
+
+    <div class="relative bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4" (click)="$event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800">Registrar Nueva Factura</h3>
+            <button (click)="cerrar.emit()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <svg class="text-gray-400" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Contenido -->
+        <div class="p-5">
+            <form [formGroup]="form" (ngSubmit)="guardar()" class="space-y-4">
+
+                <!-- Primera fila -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">
+                            Número Factura <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" formControlName="numero_dte"
+                            class="w-full text-sm border rounded-md py-2 px-3"
+                            [class.border-red-300]="isFieldInvalid('numero_dte')" placeholder="Ej: 123456789">
+                        <div *ngIf="isFieldInvalid('numero_dte')" class="text-red-500 text-xs mt-1">
+                            Campo requerido
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">
+                            Fecha Emisión <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" formControlName="fecha_emision"
+                            class="w-full text-sm border rounded-md py-2 px-3"
+                            [class.border-red-300]="isFieldInvalid('fecha_emision')">
+                        <div *ngIf="isFieldInvalid('fecha_emision')" class="text-red-500 text-xs mt-1">
+                            Campo requerido
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Segunda fila (ahora solo autorización) -->
+                <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">
+                            Autorización <span class="text-red-500">*</span>
+                        </label>
+                        <select formControlName="numero_autorizacion" class="w-full text-sm border rounded-md py-2 px-3"
+                            [class.border-red-300]="isFieldInvalid('numero_autorizacion')">
+                            <option value="">Seleccione una autorización</option>
+                            <option *ngFor="let auth of autorizaciones" [value]="auth.codigo">
+                                {{ auth.nombre }}
+                            </option>
+                        </select>
+                        <div *ngIf="isFieldInvalid('numero_autorizacion')" class="text-red-500 text-xs mt-1">
+                            Campo requerido
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tercera fila -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">
+                        Nombre del Emisor <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" formControlName="nombre_emisor"
+                        class="w-full text-sm border rounded-md py-2 px-3"
+                        [class.border-red-300]="isFieldInvalid('nombre_emisor')"
+                        placeholder="Nombre completo del emisor">
+                    <div *ngIf="isFieldInvalid('nombre_emisor')" class="text-red-500 text-xs mt-1">
+                        Campo requerido
+                    </div>
+                </div>
+
+                <!-- Cuarta fila (Moneda fija + monto) -->
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="flex items-end">
+                        <span class="text-sm font-medium text-gray-600">
+                            Moneda: <span class="font-semibold text-gray-800">GTQ</span>
+                        </span>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium mb-1">
+                            Monto Total <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" step="0.01" min="0.01" formControlName="monto_total"
+                            class="w-full text-sm border rounded-md py-2 px-3" [class.border-red-300]="isFieldInvalid('monto_total')"
+                            placeholder="0.00">
+                        <div *ngIf="isFieldInvalid('monto_total')" class="text-red-500 text-xs mt-1">
+                            Monto debe ser mayor a 0
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Errores de validación -->
+                <div *ngIf="erroresValidacion.length > 0" class="bg-red-50 border border-red-200 rounded-md p-3">
+                    <div class="text-sm text-red-800 font-medium mb-1">Errores encontrados:</div>
+                    <ul class="text-sm text-red-700 list-disc list-inside space-y-1">
+                        <li *ngFor="let error of erroresValidacion">{{ error }}</li>
+                    </ul>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex justify-end gap-2 pt-4 border-t">
+                    <button type="button" (click)="cerrar.emit()"
+                        class="px-4 py-2 text-sm border rounded-md hover:bg-gray-50 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" [disabled]="form.invalid || guardando"
+                        class="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        {{ guardando ? 'Guardando...' : 'Registrar Factura' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
