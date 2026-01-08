@@ -34,6 +34,7 @@ export class PagoChequeFormComponentpresupuesto implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    console.log('[CHEQUE] Data recibida en ngOnInit:', this.data);
     this.cargarDatosExistentes();
   }
 
@@ -44,6 +45,8 @@ export class PagoChequeFormComponentpresupuesto implements OnInit, OnDestroy {
 
   private cargarDatosExistentes(): void {
     if (!this.data) return;
+
+    console.log('[CHEQUE] Cargando datos existentes:', this.data);
 
     // Para la consignación, si viene no_negociable=true, ponemos "No Negociable"
     let consignacion = this.data.consignacion || 'Negociable';
@@ -56,6 +59,8 @@ export class PagoChequeFormComponentpresupuesto implements OnInit, OnDestroy {
       consignacion: consignacion,
       observaciones: this.data.observaciones || ''
     });
+
+    console.log('[CHEQUE] Formulario actualizado:', this.form.value);
   }
 
   // === VALIDACIONES ===

@@ -53,10 +53,20 @@ export class PagoTransferenciaFormComponentpresupuesto implements OnInit {
   }
 
   ngOnInit() {
+    console.log('[TRANSFERENCIA] Data recibida en ngOnInit:', this.data);
     this.cargarCatalogos();
 
     // Cargar datos existentes si los hay
     if (this.data) {
+      this.cargarDatosExistentes();
+    }
+  }
+
+  private cargarDatosExistentes(): void {
+    console.log('[TRANSFERENCIA] Cargando datos existentes:', this.data);
+
+    // Esperar a que los catálogos se carguen antes de hacer el patchValue
+    setTimeout(() => {
       this.form.patchValue({
         nombre_cuenta: this.data.nombre_cuenta || '',
         numero_cuenta: this.data.numero_cuenta || '',
@@ -64,7 +74,8 @@ export class PagoTransferenciaFormComponentpresupuesto implements OnInit {
         tipo_cuenta: this.data.tipo_cuenta || '',
         observaciones: this.data.observaciones || ''
       });
-    }
+      console.log('[TRANSFERENCIA] Formulario actualizado:', this.form.value);
+    }, 500);
   }
 
   private cargarCatalogos(): void {

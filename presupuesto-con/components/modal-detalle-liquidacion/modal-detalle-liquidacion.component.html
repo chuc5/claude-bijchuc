@@ -221,26 +221,34 @@
                     <ng-container [ngSwitch]="tipoSeleccionado()">
                         <!-- Formulario de depósito -->
                         <app-form-pago-deposito-presupuesto *ngSwitchCase="'deposito'"
-                            [agencias]="agenciasDisponibles()" (guardar)="onGuardarDesdeForm($event)">
+                            [data]="datosParaFormularioEspecifico"
+                            [agencias]="agenciasDisponibles()"
+                            (guardar)="onGuardarDesdeForm($event)">
                         </app-form-pago-deposito-presupuesto>
 
                         <!-- Formulario de transferencia -->
                         <app-form-pago-transferencia-presupuesto *ngSwitchCase="'transferencia'"
-                            [agencias]="agenciasDisponibles()" (guardar)="onGuardarDesdeForm($event)">
+                            [data]="datosParaFormularioEspecifico"
+                            [agencias]="agenciasDisponibles()"
+                            (guardar)="onGuardarDesdeForm($event)">
                         </app-form-pago-transferencia-presupuesto>
 
                         <!-- Formulario de cheque -->
-                        <app-form-pago-cheque-presupuesto *ngSwitchCase="'cheque'" [agencias]="agenciasDisponibles()"
+                        <app-form-pago-cheque-presupuesto *ngSwitchCase="'cheque'"
+                            [data]="datosParaFormularioEspecifico"
+                            [agencias]="agenciasDisponibles()"
                             (guardar)="onGuardarDesdeForm($event)">
                         </app-form-pago-cheque-presupuesto>
 
                         <!-- Selector de tarjeta -->
-                        <app-select-pago-tarjeta-presupuesto *ngSwitchCase="'tarjeta'" [data]="registro"
+                        <app-select-pago-tarjeta-presupuesto *ngSwitchCase="'tarjeta'"
+                            [data]="datosParaFormularioEspecifico"
                             (guardar)="onGuardarDesdeForm($event)">
                         </app-select-pago-tarjeta-presupuesto>
 
                         <!-- Selector de anticipo -->
-                        <app-select-pago-anticipo-presupuesto *ngSwitchCase="'anticipo'" [data]="registro"
+                        <app-select-pago-anticipo-presupuesto *ngSwitchCase="'anticipo'"
+                            [data]="datosParaFormularioEspecifico"
                             (guardar)="onGuardarDesdeForm($event)">
                         </app-select-pago-anticipo-presupuesto>
                     </ng-container>

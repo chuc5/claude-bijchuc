@@ -256,9 +256,20 @@ export class ModalDetalleLiquidacionNuevoComponentpresupuesto implements OnInit,
 
     cargarDatosParaEdicion() {
         if (!this.registro || !this.formularioPrincipal) return;
-        const areaPresupuestoId = this.registro.area_presupuesto
-            ? Number(this.registro.area_presupuesto)
-            : null;
+
+        // Manejar area_presupuesto - puede venir del objeto principal o de datos_especificos
+        let areaPresupuestoId: number | null = null;
+
+        if (this.registro.area_presupuesto) {
+            areaPresupuestoId = Number(this.registro.area_presupuesto);
+        } else if (this.registro.datos_especificos && this.registro.datos_especificos.area_presupuesto) {
+            areaPresupuestoId = Number(this.registro.datos_especificos.area_presupuesto);
+        }
+
+        console.log('[EDICIÓN] Cargando datos:', {
+            registro: this.registro,
+            area_presupuesto: areaPresupuestoId
+        });
 
         this.formularioPrincipal.patchValue({
             numero_orden: this.registro.numero_orden || '',
@@ -269,7 +280,7 @@ export class ModalDetalleLiquidacionNuevoComponentpresupuesto implements OnInit,
             forma_pago: this.registro.forma_pago || '',
             banco: this.registro.banco || '',
             cuenta: this.registro.cuenta || '',
-            area_presupuesto: areaPresupuestoId // NUEVO
+            area_presupuesto: areaPresupuestoId
         });
 
         setTimeout(() => {
@@ -659,5 +670,37 @@ export class ModalDetalleLiquidacionNuevoComponentpresupuesto implements OnInit,
 
     trackByBanco(index: number, banco: BancoPE): number {
         return banco.id_banco;
+    }
+
+    // ============================================================================
+    // GETTER PARA PASAR DATOS A FORMULARIOS ESPECÍFICOS
+    // ============================================================================
+
+    /**
+     * Combina los datos del formulario principal con datos_especificos del registro
+     * para pasarlos a los formularios específicos de cada forma de pago
+     */
+    get datosParaFormularioEspecifico(): any {
+        // En modo crear, solo pasar valores actuales del formulario
+        if (this.modo === 'crear' || !this.registro) {
+            return {
+                ...this.formularioPrincipal.value
+            };
+        }
+
+        // En modo edición, combinar datos del formulario con datos_especificos
+        const datosBase = {
+            ...this.formularioPrincipal.value
+        };
+
+        // Si hay datos_especificos, combinarlos
+        if (this.registro.datos_especificos && typeof this.registro.datos_especificos === 'object') {
+            return {
+                ...datosBase,
+                ...this.registro.datos_especificos
+            };
+        }
+
+        return datosBase;
     }
 }

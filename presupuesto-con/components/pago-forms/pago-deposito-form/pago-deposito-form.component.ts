@@ -54,6 +54,7 @@ export class PagoDepositoFormComponentpresupuesto implements OnInit {
   }
 
   ngOnInit() {
+    console.log('[DEPÓSITO] Data recibida en ngOnInit:', this.data);
     this.configurarBuscadorSocios();
 
     // Cargar datos existentes si los hay
@@ -77,9 +78,21 @@ export class PagoDepositoFormComponentpresupuesto implements OnInit {
   }
 
   private cargarDatosExistentes(): void {
+    console.log('[DEPÓSITO] Cargando datos existentes:', this.data);
+
     if (this.data.id_socio) {
       // Cargar datos del socio seleccionado
       this.cargarSocioPorId(this.data.id_socio);
+
+      // Guardar id_cuenta para seleccionarla después de cargar las cuentas
+      if (this.data.id_cuenta) {
+        // Esperamos a que las cuentas se carguen para seleccionar la correcta
+        setTimeout(() => {
+          this.form.patchValue({
+            id_cuenta: this.data.id_cuenta
+          });
+        }, 1000);
+      }
     }
 
     this.form.patchValue({
