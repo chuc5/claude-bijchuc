@@ -173,21 +173,34 @@
                         </div>
 
                         <label>Caja de ventas <?php echo CAMPO_OBLIGATORIO; ?></label><br>
-                        <div class="select mb-5">
-                            <select name="venta_caja">
-                                <?php
-                                $datos_cajas = $insLogin->seleccionarDatos("Normal", "caja", "*", 0);
+                        <?php if ($_SESSION['tipo'] == 'Administrador') { ?>
+                            <div class="select mb-5">
+                                <select name="venta_caja">
+                                    <?php
+                                    $datos_cajas = $insLogin->seleccionarDatos("Normal", "caja", "*", 0);
 
-                                while ($campos_caja = $datos_cajas->fetch()) {
-                                    if ($campos_caja['caja_id'] == $_SESSION['caja']) {
-                                        echo '<option value="' . $campos_caja['caja_id'] . '" selected="" >Caja No.' . $campos_caja['caja_numero'] . ' - ' . $campos_caja['caja_nombre'] . ' (Actual)</option>';
-                                    } else {
-                                        echo '<option value="' . $campos_caja['caja_id'] . '">Caja No.' . $campos_caja['caja_numero'] . ' - ' . $campos_caja['caja_nombre'] . '</option>';
+                                    while ($campos_caja = $datos_cajas->fetch()) {
+                                        if ($campos_caja['caja_id'] == $_SESSION['caja']) {
+                                            echo '<option value="' . $campos_caja['caja_id'] . '" selected="" >Caja No.' . $campos_caja['caja_numero'] . ' - ' . $campos_caja['caja_nombre'] . ' (Actual)</option>';
+                                        } else {
+                                            echo '<option value="' . $campos_caja['caja_id'] . '">Caja No.' . $campos_caja['caja_numero'] . ' - ' . $campos_caja['caja_nombre'] . '</option>';
+                                        }
                                     }
-                                }
-                                ?>
-                            </select>
-                        </div>
+                                    ?>
+                                </select>
+                            </div>
+                        <?php } else {
+                            // Usuarios normales solo ven su caja asignada (no pueden cambiarla)
+                            $caja_asignada = $insLogin->seleccionarDatos("Unico", "caja", "caja_id", $_SESSION['caja']);
+                            if ($caja_asignada->rowCount() == 1) {
+                                $caja_asignada = $caja_asignada->fetch();
+                        ?>
+                            <div class="control mb-5">
+                                <input class="input" type="text" value="Caja No.<?php echo $caja_asignada['caja_numero'] . ' - ' . $caja_asignada['caja_nombre']; ?>" readonly>
+                                <input type="hidden" name="venta_caja" value="<?php echo $_SESSION['caja']; ?>">
+                            </div>
+                        <?php }
+                        } ?>
                         <br>
 
                         <label>Cliente</label>

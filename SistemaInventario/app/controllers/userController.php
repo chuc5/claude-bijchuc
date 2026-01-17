@@ -11,6 +11,12 @@ class userController extends mainModel
 	public function registrarUsuarioControlador()
 	{
 
+		# Verificando permisos de administrador #
+		$permiso = $this->verificarPermisoAdmin();
+		if ($permiso !== false) {
+			return $permiso;
+		}
+
 		# Almacenando datos#
 		$nombre = $this->limpiarCadena($_POST['usuario_nombre']);
 		$apellido = $this->limpiarCadena($_POST['usuario_apellido']);
@@ -20,15 +26,28 @@ class userController extends mainModel
 		$clave1 = $this->limpiarCadena($_POST['usuario_clave_1']);
 		$clave2 = $this->limpiarCadena($_POST['usuario_clave_2']);
 
+		$tipo = $this->limpiarCadena($_POST['usuario_tipo']);
 		$caja = $this->limpiarCadena($_POST['usuario_caja']);
 
 
 		# Verificando campos obligatorios #
-		if ($nombre == "" || $apellido == "" || $usuario == "" || $clave1 == "" || $clave2 == "") {
+		if ($nombre == "" || $apellido == "" || $usuario == "" || $clave1 == "" || $clave2 == "" || $tipo == "") {
 			$alerta = [
 				"tipo" => "simple",
 				"titulo" => "Ocurrió un error inesperado",
 				"texto" => "No has llenado todos los campos que son obligatorios",
+				"icono" => "error"
+			];
+			return json_encode($alerta);
+			exit();
+		}
+
+		# Verificando tipo de usuario #
+		if ($tipo != "Administrador" && $tipo != "Usuario") {
+			$alerta = [
+				"tipo" => "simple",
+				"titulo" => "Ocurrió un error inesperado",
+				"texto" => "El tipo de usuario seleccionado no es válido",
 				"icono" => "error"
 			];
 			return json_encode($alerta);
@@ -249,6 +268,11 @@ class userController extends mainModel
 				"campo_valor" => $clave
 			],
 			[
+				"campo_nombre" => "usuario_tipo",
+				"campo_marcador" => ":Tipo",
+				"campo_valor" => $tipo
+			],
+			[
 				"campo_nombre" => "usuario_foto",
 				"campo_marcador" => ":Foto",
 				"campo_valor" => $foto
@@ -417,6 +441,12 @@ class userController extends mainModel
 	public function eliminarUsuarioControlador()
 	{
 
+		# Verificando permisos de administrador #
+		$permiso = $this->verificarPermisoAdmin();
+		if ($permiso !== false) {
+			return $permiso;
+		}
+
 		$id = $this->limpiarCadena($_POST['usuario_id']);
 
 		if ($id == 1) {
@@ -491,6 +521,18 @@ class userController extends mainModel
 	{
 
 		$id = $this->limpiarCadena($_POST['usuario_id']);
+
+		# Verificando permisos: Solo admin puede editar otros usuarios #
+		if ($id != $_SESSION['id'] && !$this->esAdministrador()) {
+			$alerta = [
+				"tipo" => "simple",
+				"titulo" => "Permiso denegado",
+				"texto" => "No tienes permisos para editar otros usuarios. Solo los administradores pueden realizar esta acción.",
+				"icono" => "error"
+			];
+			return json_encode($alerta);
+			exit();
+		}
 
 		# Verificando usuario #
 		$datos = $this->ejecutarConsulta("SELECT * FROM usuario WHERE usuario_id='$id'");
@@ -582,10 +624,11 @@ class userController extends mainModel
 		$clave1 = $this->limpiarCadena($_POST['usuario_clave_1']);
 		$clave2 = $this->limpiarCadena($_POST['usuario_clave_2']);
 
+		$tipo = $this->limpiarCadena($_POST['usuario_tipo']);
 		$caja = $this->limpiarCadena($_POST['usuario_caja']);
 
 		# Verificando campos obligatorios #
-		if ($nombre == "" || $apellido == "" || $usuario == "") {
+		if ($nombre == "" || $apellido == "" || $usuario == "" || $tipo == "") {
 			$alerta = [
 				"tipo" => "simple",
 				"titulo" => "Ocurrió un error inesperado",
@@ -624,6 +667,30 @@ class userController extends mainModel
 				"tipo" => "simple",
 				"titulo" => "Ocurrió un error inesperado",
 				"texto" => "El USUARIO no coincide con el formato solicitado",
+				"icono" => "error"
+			];
+			return json_encode($alerta);
+			exit();
+		}
+
+		# Verificando tipo de usuario #
+		if ($tipo != "Administrador" && $tipo != "Usuario") {
+			$alerta = [
+				"tipo" => "simple",
+				"titulo" => "Ocurrió un error inesperado",
+				"texto" => "El tipo de usuario seleccionado no es válido",
+				"icono" => "error"
+			];
+			return json_encode($alerta);
+			exit();
+		}
+
+		# Verificando que un usuario normal no cambie su propio tipo #
+		if ($id == $_SESSION['id'] && !$this->esAdministrador() && $tipo != $datos['usuario_tipo']) {
+			$alerta = [
+				"tipo" => "simple",
+				"titulo" => "Permiso denegado",
+				"texto" => "No puedes cambiar tu propio tipo de usuario. Solo los administradores pueden modificar roles.",
 				"icono" => "error"
 			];
 			return json_encode($alerta);
@@ -742,6 +809,11 @@ class userController extends mainModel
 				"campo_nombre" => "usuario_clave",
 				"campo_marcador" => ":Clave",
 				"campo_valor" => $clave
+			],
+			[
+				"campo_nombre" => "usuario_tipo",
+				"campo_marcador" => ":Tipo",
+				"campo_valor" => $tipo
 			],
 			[
 				"campo_nombre" => "caja_id",

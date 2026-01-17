@@ -72,9 +72,18 @@
 			</div>
 			<div class="columns">
 				<div class="column">
-					<label>Caja de ventas <?php echo CAMPO_OBLIGATORIO; ?></label><br>
+					<label>Tipo de usuario <?php echo CAMPO_OBLIGATORIO; ?></label><br>
 					<div class="select">
-						<select name="usuario_caja">
+						<select name="usuario_tipo" required>
+							<option value="Administrador" <?php echo ($datos['usuario_tipo'] == 'Administrador') ? 'selected' : ''; ?>>Administrador</option>
+							<option value="Usuario" <?php echo ($datos['usuario_tipo'] == 'Usuario') ? 'selected' : ''; ?>>Usuario</option>
+						</select>
+					</div>
+				</div>
+				<div class="column">
+					<label>Caja asignada <?php echo CAMPO_OBLIGATORIO; ?></label><br>
+					<div class="select">
+						<select name="usuario_caja" required>
 							<?php
 							$datos_cajas = $insLogin->seleccionarDatos("Normal", "caja", "*", 0);
 

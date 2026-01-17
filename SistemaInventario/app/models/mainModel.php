@@ -276,4 +276,60 @@ class mainModel
 			return $cadena;
 		}
 	}
+
+
+	/*----------  Verificar si el usuario es administrador  ----------*/
+	protected function esAdministrador()
+	{
+		if (session_status() == PHP_SESSION_NONE) {
+			session_start();
+		}
+		return isset($_SESSION['tipo']) && $_SESSION['tipo'] == 'Administrador';
+	}
+
+
+	/*----------  Verificar permisos de administrador con mensaje de error  ----------*/
+	protected function verificarPermisoAdmin()
+	{
+		if (!$this->esAdministrador()) {
+			$alerta = [
+				"tipo" => "simple",
+				"titulo" => "Permiso denegado",
+				"texto" => "No tienes permisos para realizar esta acción. Solo los administradores pueden acceder a esta funcionalidad.",
+				"icono" => "error"
+			];
+			return json_encode($alerta);
+		}
+		return false;
+	}
+
+
+	/*----------  Obtener tipo de usuario actual  ----------*/
+	protected function obtenerTipoUsuario()
+	{
+		if (session_status() == PHP_SESSION_NONE) {
+			session_start();
+		}
+		return isset($_SESSION['tipo']) ? $_SESSION['tipo'] : 'Usuario';
+	}
+
+
+	/*----------  Obtener caja asignada del usuario actual  ----------*/
+	protected function obtenerCajaAsignada()
+	{
+		if (session_status() == PHP_SESSION_NONE) {
+			session_start();
+		}
+		return isset($_SESSION['caja']) ? $_SESSION['caja'] : 1;
+	}
+
+
+	/*----------  Obtener ID del usuario actual  ----------*/
+	protected function obtenerIdUsuario()
+	{
+		if (session_status() == PHP_SESSION_NONE) {
+			session_start();
+		}
+		return isset($_SESSION['id']) ? $_SESSION['id'] : 0;
+	}
 }

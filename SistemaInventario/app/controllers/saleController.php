@@ -466,7 +466,13 @@
         /*---------- Controlador registrar venta ----------*/
         public function registrarVentaControlador(){
 
-            $caja=$this->limpiarCadena($_POST['venta_caja']);
+            # Si el usuario no es administrador, usar su caja asignada #
+            if ($this->esAdministrador()) {
+                $caja=$this->limpiarCadena($_POST['venta_caja']);
+            } else {
+                $caja = $this->obtenerCajaAsignada();
+            }
+
             $venta_pagado=$this->limpiarCadena($_POST['venta_abono']);
 
             /*== Comprobando integridad de los datos ==*/
@@ -899,17 +905,25 @@
 
 			$campos_tablas="venta.venta_id,venta.venta_codigo,venta.venta_fecha,venta.venta_hora,venta.venta_total,venta.usuario_id,venta.cliente_id,venta.caja_id,usuario.usuario_id,usuario.usuario_nombre,usuario.usuario_apellido,cliente.cliente_id,cliente.cliente_nombre,cliente.cliente_apellido";
 
+			# Filtro para usuarios normales: solo sus ventas del día actual #
+			$filtro_usuario = "";
+			if (!$this->esAdministrador()) {
+				$usuario_id = $this->obtenerIdUsuario();
+				$fecha_hoy = date('Y-m-d');
+				$filtro_usuario = " AND venta.usuario_id='$usuario_id' AND venta.venta_fecha='$fecha_hoy'";
+			}
+
 			if(isset($busqueda) && $busqueda!=""){
 
-				$consulta_datos="SELECT $campos_tablas FROM venta INNER JOIN cliente ON venta.cliente_id=cliente.cliente_id INNER JOIN usuario ON venta.usuario_id=usuario.usuario_id WHERE (venta.venta_codigo='$busqueda') ORDER BY venta.venta_id DESC LIMIT $inicio,$registros";
+				$consulta_datos="SELECT $campos_tablas FROM venta INNER JOIN cliente ON venta.cliente_id=cliente.cliente_id INNER JOIN usuario ON venta.usuario_id=usuario.usuario_id WHERE (venta.venta_codigo='$busqueda')$filtro_usuario ORDER BY venta.venta_id DESC LIMIT $inicio,$registros";
 
-				$consulta_total="SELECT COUNT(venta_id) FROM venta WHERE (venta.venta_codigo='$busqueda')";
+				$consulta_total="SELECT COUNT(venta_id) FROM venta WHERE (venta.venta_codigo='$busqueda')$filtro_usuario";
 
 			}else{
 
-				$consulta_datos="SELECT $campos_tablas FROM venta INNER JOIN cliente ON venta.cliente_id=cliente.cliente_id INNER JOIN usuario ON venta.usuario_id=usuario.usuario_id ORDER BY venta.venta_id DESC LIMIT $inicio,$registros";
+				$consulta_datos="SELECT $campos_tablas FROM venta INNER JOIN cliente ON venta.cliente_id=cliente.cliente_id INNER JOIN usuario ON venta.usuario_id=usuario.usuario_id WHERE 1=1$filtro_usuario ORDER BY venta.venta_id DESC LIMIT $inicio,$registros";
 
-				$consulta_total="SELECT COUNT(venta_id) FROM venta";
+				$consulta_total="SELECT COUNT(venta_id) FROM venta WHERE 1=1$filtro_usuario";
 
 			}
 
@@ -962,18 +976,23 @@
 
 			                    <a href="'.APP_URL.'saleDetail/'.$rows['venta_codigo'].'/" class="button is-link is-rounded is-small" title="Informacion de venta Nro. '.$rows['venta_id'].'" >
 			                    	<i class="fas fa-shopping-bag fa-fw"></i>
-			                    </a>
+			                    </a>';
 
-			                	<form class="FormularioAjax is-inline-block" action="'.APP_URL.'app/ajax/ventaAjax.php" method="POST" autocomplete="off" >
+			                	// Solo administradores pueden eliminar ventas
+			                	if($this->esAdministrador()){
+			                		$tabla.='
+			                		<form class="FormularioAjax is-inline-block" action="'.APP_URL.'app/ajax/ventaAjax.php" method="POST" autocomplete="off" >
 
-			                		<input type="hidden" name="modulo_venta" value="eliminar_venta">
-			                		<input type="hidden" name="venta_id" value="'.$rows['venta_id'].'">
+			                			<input type="hidden" name="modulo_venta" value="eliminar_venta">
+			                			<input type="hidden" name="venta_id" value="'.$rows['venta_id'].'">
 
-			                    	<button type="submit" class="button is-danger is-rounded is-small" title="Eliminar venta Nro. '.$rows['venta_id'].'" >
-			                    		<i class="far fa-trash-alt fa-fw"></i>
-			                    	</button>
-			                    </form>
+			                    		<button type="submit" class="button is-danger is-rounded is-small" title="Eliminar venta Nro. '.$rows['venta_id'].'" >
+			                    			<i class="far fa-trash-alt fa-fw"></i>
+			                    		</button>
+			                    	</form>';
+			                	}
 
+			                	$tabla.='
 			                </td>
 						</tr>
 					';
@@ -1017,6 +1036,12 @@
 
 		/*----------  Controlador eliminar venta  ----------*/
 		public function eliminarVentaControlador(){
+
+			# Verificando permisos de administrador #
+			$permiso = $this->verificarPermisoAdmin();
+			if ($permiso !== false) {
+				return $permiso;
+			}
 
 			$id=$this->limpiarCadena($_POST['venta_id']);
 

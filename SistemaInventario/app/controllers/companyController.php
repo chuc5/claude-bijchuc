@@ -8,6 +8,12 @@
 		/*----------  Controlador registrar empresa  ----------*/
 		public function registrarEmpresaControlador(){
 
+			# Verificando permisos de administrador #
+			$permiso = $this->verificarPermisoAdmin();
+			if ($permiso !== false) {
+				return $permiso;
+			}
+
 			# Almacenando datos#
 		    $nombre=$this->limpiarCadena($_POST['empresa_nombre']);
 
@@ -127,6 +133,12 @@
 
 		/*----------  Controlador actualizar empresa  ----------*/
 		public function actualizarEmpresaControlador(){
+
+			# Verificando permisos de administrador #
+			$permiso = $this->verificarPermisoAdmin();
+			if ($permiso !== false) {
+				return $permiso;
+			}
 
 			$id=$this->limpiarCadena($_POST['empresa_id']);
 

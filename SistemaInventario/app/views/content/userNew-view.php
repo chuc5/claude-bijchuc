@@ -60,8 +60,20 @@
             </div>
             <div class="col-md-6">
                 <div class="form-group">
-                    <label for="usuario_caja">Caja de ventas <?php echo CAMPO_OBLIGATORIO; ?></label><br>
-                    <select class="form-control" name="usuario_caja" id="usuario_caja">
+                    <label for="usuario_tipo">Tipo de usuario <?php echo CAMPO_OBLIGATORIO; ?></label>
+                    <select class="form-control" name="usuario_tipo" id="usuario_tipo" required>
+                        <option value="" selected>Seleccione una opción</option>
+                        <option value="Administrador">Administrador</option>
+                        <option value="Usuario">Usuario</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="usuario_caja">Caja asignada <?php echo CAMPO_OBLIGATORIO; ?></label>
+                    <select class="form-control" name="usuario_caja" id="usuario_caja" required>
                         <option value="" selected>Seleccione una opción</option>
                         <?php
                         $datos_cajas = $insLogin->seleccionarDatos("Normal", "caja", "*", 0);

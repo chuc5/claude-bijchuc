@@ -11,6 +11,12 @@ class cashierController extends mainModel
 	public function registrarCajaControlador()
 	{
 
+		# Verificando permisos de administrador #
+		$permiso = $this->verificarPermisoAdmin();
+		if ($permiso !== false) {
+			return $permiso;
+		}
+
 		# Almacenando datos#
 		$numero = $this->limpiarCadena($_POST['caja_numero']);
 		$nombre = $this->limpiarCadena($_POST['caja_nombre']);
@@ -262,6 +268,12 @@ class cashierController extends mainModel
 	public function eliminarCajaControlador()
 	{
 
+		# Verificando permisos de administrador #
+		$permiso = $this->verificarPermisoAdmin();
+		if ($permiso !== false) {
+			return $permiso;
+		}
+
 		$id = $this->limpiarCadena($_POST['caja_id']);
 
 		if ($id == 1) {
@@ -341,6 +353,12 @@ class cashierController extends mainModel
 	/*----------  Controlador actualizar caja  ----------*/
 	public function actualizarCajaControlador()
 	{
+
+		# Verificando permisos de administrador #
+		$permiso = $this->verificarPermisoAdmin();
+		if ($permiso !== false) {
+			return $permiso;
+		}
 
 		$id = $this->limpiarCadena($_POST['caja_id']);
 
