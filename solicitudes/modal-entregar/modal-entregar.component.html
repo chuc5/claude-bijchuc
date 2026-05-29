@@ -1,0 +1,114 @@
+<!-- =========================================================== -->
+<!-- modal-entregar.component.html                              -->
+<!-- =========================================================== -->
+<div @overlay class="fixed inset-0 bg-black bg-opacity-50 flex items-center
+     justify-center z-50 p-4" (click)="cerrar.emit()">
+    <div @modal class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh]
+     overflow-y-auto" (click)="$event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between p-5 border-b border-gray-200
+                sticky top-0 bg-white z-10">
+            <h2 class="text-lg font-bold text-gray-900">{{ tituloModal }}</h2>
+            <button (click)="cerrar.emit()" class="text-gray-400 hover:text-gray-600 transition">
+                <lucide-icon [img]="X" class="w-5 h-5"></lucide-icon>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 space-y-4">
+
+            <!-- Info de la cabecera -->
+            <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Solicitud</span>
+                    <span class="font-mono font-medium">#{{ detalle.cabecera.id }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Solicitante</span>
+                    <span class="font-mono text-xs">{{ detalle.cabecera.solicitante }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Fecha</span>
+                    <span>{{ fecha(detalle.cabecera.created_at) }}</span>
+                </div>
+                <div *ngIf="detalle.cabecera.observaciones" class="flex justify-between">
+                    <span class="text-gray-500">Observaciones</span>
+                    <span class="text-right max-w-xs">{{ detalle.cabecera.observaciones }}</span>
+                </div>
+            </div>
+
+            <!-- Renglones -->
+            <div>
+                <p class="text-sm font-medium text-gray-700 mb-2">Productos solicitados</p>
+                <div class="space-y-2">
+                    <div *ngFor="let r of detalle.renglones" class="bg-white rounded-lg border border-gray-200 p-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 bg-indigo-50 rounded-lg flex items-center
+                                    justify-center flex-shrink-0">
+                                <lucide-icon [img]="Package" class="w-4 h-4 text-indigo-500">
+                                </lucide-icon>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-gray-900 text-sm">{{ r.producto }}</p>
+                                <p class="text-xs text-gray-500">
+                                    {{ r.tipo_producto }} · {{ r.unidad }}
+                                </p>
+                                <div class="mt-1 flex gap-4 text-xs text-gray-600">
+                                    <span>
+                                        Solicitado:
+                                        <strong>{{ cantidad(r.cantidad_solicitada) }} {{ r.abreviatura_unidad
+                                            }}</strong>
+                                    </span>
+                                    <span *ngIf="r.cantidad_entregada !== null">
+                                        Entregado:
+                                        <strong class="text-green-700">
+                                            {{ cantidad(r.cantidad_entregada) }} {{ r.abreviatura_unidad }}
+                                        </strong>
+                                    </span>
+                                    <span *ngIf="r.motivo_rechazo" class="text-red-600">
+                                        Rechazado: {{ r.motivo_rechazo }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aviso correlativos -->
+            <div *ngIf="tieneCorrelativo && puedeEntregar" class="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200
+                    rounded-lg text-xs text-amber-800">
+                <lucide-icon [img]="AlertCircle" class="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0">
+                </lucide-icon>
+                Esta solicitud contiene productos con correlativo.
+                La entrega de correlativos se gestiona desde "Entregar Correlativo" (Sprint 5).
+            </div>
+
+            <!-- Aviso FIFO/PEPS -->
+            <div *ngIf="puedeEntregar && !tieneCorrelativo" class="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200
+                    rounded-lg text-xs text-blue-800">
+                <lucide-icon [img]="AlertCircle" class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0">
+                </lucide-icon>
+                El sistema aplicará <strong>FIFO</strong> para productos normales y
+                <strong>PEPS</strong> para productos con fecha de expiración automáticamente.
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-end gap-2 p-5 border-t border-gray-200
+                bg-gray-50 sticky bottom-0">
+            <button (click)="cerrar.emit()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border
+                   border-gray-300 rounded-md hover:bg-gray-50 transition">
+                {{ puedeEntregar ? 'Cancelar' : 'Cerrar' }}
+            </button>
+            <button *ngIf="puedeEntregar && !tieneCorrelativo" (click)="onConfirmar()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white
+                   bg-indigo-600 rounded-md hover:bg-indigo-700 transition">
+                <lucide-icon [img]="CheckCircle2" class="w-4 h-4"></lucide-icon>
+                Confirmar entrega
+            </button>
+        </div>
+
+    </div>
+</div>

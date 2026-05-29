@@ -1,0 +1,56 @@
+<!-- =========================================================== -->
+<!-- modal-rechazar.component.html                              -->
+<!-- =========================================================== -->
+<div @overlay class="fixed inset-0 bg-black bg-opacity-50 flex items-center
+     justify-center z-50 p-4" (click)="cerrar.emit()">
+<div @modal class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh]
+     overflow-y-auto" (click)="$event.stopPropagation()">
+ 
+    <div class="flex items-center justify-between p-5 border-b border-gray-200">
+        <h2 class="text-lg font-bold text-gray-900">Rechazar Solicitud</h2>
+        <button (click)="cerrar.emit()" class="text-gray-400 hover:text-gray-600">
+            <lucide-icon [img]="X" class="w-5 h-5"></lucide-icon>
+        </button>
+    </div>
+ 
+    <div class="p-5 space-y-4">
+        <div class="bg-red-50 rounded-lg border border-red-200 p-3 text-sm text-red-800">
+            Solicitud <strong>#{{ detalle.cabecera.id }}</strong> de
+            <strong class="font-mono">{{ detalle.cabecera.solicitante }}</strong>.
+            Al rechazar, el stock reservado se liberará inmediatamente.
+        </div>
+ 
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Motivo de rechazo <span class="text-red-500">*</span>
+            </label>
+            <textarea [(ngModel)]="motivo" rows="3" maxlength="500"
+                placeholder="Explica brevemente el motivo del rechazo..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm
+                       resize-none focus:outline-none focus:ring-2 focus:ring-red-500">
+            </textarea>
+            <p *ngIf="errorMotivo()" class="mt-1 text-xs text-red-600">
+                {{ errorMotivo() }}
+            </p>
+            <p class="text-xs text-gray-400 text-right mt-1">
+                {{ motivo.length }}/500
+            </p>
+        </div>
+    </div>
+ 
+    <div class="flex items-center justify-end gap-2 p-5 border-t border-gray-200 bg-gray-50">
+        <button (click)="cerrar.emit()"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border
+                   border-gray-300 rounded-md hover:bg-gray-50 transition">
+            Cancelar
+        </button>
+        <button (click)="onConfirmar()"
+            class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white
+                   bg-red-600 rounded-md hover:bg-red-700 transition">
+            <lucide-icon [img]="XCircleIcon" class="w-4 h-4"></lucide-icon>
+            Rechazar solicitud
+        </button>
+    </div>
+ 
+</div>
+</div>
