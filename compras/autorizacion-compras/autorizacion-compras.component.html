@@ -1,0 +1,144 @@
+<div class="min-h-screen bg-gray-100">
+    <div class="mx-auto px-4 py-5 space-y-4">
+
+        <!-- ── PAGE HEADER ───────────────────────────────────────────────── -->
+        <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h1 class="text-xl font-semibold text-gray-900 tracking-tight">
+                        Autorización de Compras
+                    </h1>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs
+                                 font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                        <lucide-icon [img]="ShieldCheck" class="w-3 h-3"></lucide-icon>
+                        Gerencia / Financiero
+                    </span>
+                </div>
+                <p class="text-xs text-gray-400 mt-0.5">
+                    Alzas de cantidad y compras extraordinarias ·
+                    <span class="text-gray-600 font-medium">{{ totalPendientes() }} pendientes</span>
+                </p>
+            </div>
+
+            <button (click)="refrescarDatos()" [disabled]="cargando()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs
+                       font-medium border border-gray-300 bg-white text-gray-600
+                       hover:bg-gray-50 transition disabled:opacity-50 shadow-sm">
+                <lucide-icon [img]="RefreshCw" class="w-3.5 h-3.5" [class.animate-spin]="cargando()"></lucide-icon>
+                {{ cargando() ? 'Actualizando...' : 'Actualizar' }}
+            </button>
+        </div>
+
+        <!-- ── ESTADÍSTICA ───────────────────────────────────────────────── -->
+        <div
+            class="bg-white border border-gray-200 rounded-xl shadow-sm px-3 py-2.5 flex items-center justify-between max-w-xs">
+            <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Pendientes</span>
+            <span class="text-lg font-semibold text-purple-700">{{ totalPendientes() }}</span>
+        </div>
+
+        <!-- ── LISTA (cards, no tabla — necesita expandir líneas) ───────────── -->
+        <div *ngIf="cargando()" class="bg-white border border-gray-200 rounded-xl shadow-sm p-10 text-center">
+            <div class="inline-block animate-spin rounded-full h-8 w-8
+                        border-4 border-blue-600 border-t-transparent"></div>
+            <p class="mt-3 text-xs text-gray-400">Cargando compras pendientes...</p>
+        </div>
+
+        <div *ngIf="!cargando() && compras().length === 0"
+            class="bg-white border border-gray-200 rounded-xl shadow-sm p-10 text-center">
+            <div class="flex flex-col items-center gap-2 text-gray-400">
+                <lucide-icon [img]="ShieldCheck" class="w-8 h-8"></lucide-icon>
+                <p class="text-sm font-medium text-gray-900">Sin pendientes</p>
+                <p class="text-xs text-gray-400">No hay compras esperando autorización en este momento</p>
+            </div>
+        </div>
+
+        <div *ngIf="!cargando()" class="space-y-3">
+            <div *ngFor="let c of compras(); trackBy: trackByCompra"
+                class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+
+                <!-- Header de la card -->
+                <div class="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50"
+                    (click)="toggleExpandir(c.id)">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium flex-shrink-0"
+                            [class]="getClaseOrigen(c.id_tipo_origen)">
+                            {{ NOMBRE_ORIGEN[c.id_tipo_origen] }}
+                        </span>
+                        <span class="text-sm font-medium text-gray-800 truncate">{{ c.bodega }}</span>
+                        <span *ngIf="c.nombre_solicitante" class="text-xs text-gray-400 truncate">
+                            · {{ c.nombre_solicitante }}
+                        </span>
+                        <span *ngIf="tieneAlza(c)"
+                            class="inline-flex items-center gap-1 text-xs text-amber-700 flex-shrink-0">
+                            <lucide-icon [img]="TrendingUp" class="w-3 h-3"></lucide-icon>
+                            Alza de cantidad
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <span class="text-xs text-gray-400">{{ c.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                        <lucide-icon [img]="estaExpandido(c.id) ? ChevronUp : ChevronDown"
+                            class="w-4 h-4 text-gray-400"></lucide-icon>
+                    </div>
+                </div>
+
+                <!-- Detalle expandido -->
+                <div *ngIf="estaExpandido(c.id)" class="border-t border-gray-100 px-4 py-3 space-y-3">
+
+                    <table class="w-full text-xs">
+                        <thead>
+                            <tr class="text-gray-500">
+                                <th class="text-left font-medium py-1">Producto</th>
+                                <th class="text-center font-medium py-1 w-24">Solicitado</th>
+                                <th class="text-center font-medium py-1 w-24">Ajustado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            <tr *ngFor="let l of c.lineas">
+                                <td class="py-1.5 text-gray-700">{{ l.producto }}</td>
+                                <td class="py-1.5 text-center text-gray-500">
+                                    {{ l.cantidad_solicitada }} {{ l.abreviatura }}
+                                </td>
+                                <td class="py-1.5 text-center"
+                                    [class.text-amber-700]="l.cantidad_ajustada !== null && l.cantidad_ajustada > l.cantidad_solicitada"
+                                    [class.font-semibold]="l.cantidad_ajustada !== null && l.cantidad_ajustada > l.cantidad_solicitada"
+                                    [class.text-gray-400]="l.cantidad_ajustada === null">
+                                    {{ l.cantidad_ajustada ?? '—' }} {{ l.cantidad_ajustada !== null ? l.abreviatura :
+                                    '' }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                        <button (click)="confirmarRechazar(c)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium
+                                   text-red-600 bg-red-50 hover:bg-red-100 transition">
+                            <lucide-icon [img]="ShieldOff" class="w-3.5 h-3.5"></lucide-icon>
+                            Rechazar
+                        </button>
+                        <button (click)="confirmarAutorizar(c)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium
+                                   text-white bg-green-600 hover:bg-green-700 transition">
+                            <lucide-icon [img]="ShieldCheck" class="w-3.5 h-3.5"></lucide-icon>
+                            Autorizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── NOTA ──────────────────────────────────────────────────────── -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+            <div class="flex items-start gap-2.5">
+                <lucide-icon [img]="Info" class="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5"></lucide-icon>
+                <div class="text-blue-800">
+                    <p class="text-xs font-medium mb-1">Información importante:</p>
+                    <ul class="text-xs list-disc list-inside space-y-0.5 text-blue-700">
+                        <li>Al autorizar, la compra vuelve a "Aprobada" y continúa en la mesa de trabajo.</li>
+                        <li>Al rechazar, la compra queda cerrada como "Rechazada" — no se puede reabrir.</li>
+                        <li>El comentario es obligatorio en ambos casos.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
