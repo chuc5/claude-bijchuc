@@ -1,0 +1,100 @@
+<div class="min-h-screen bg-gray-100">
+    <div class="mx-auto px-4 py-5 space-y-4 max-w-3xl">
+
+        <!-- ── PAGE HEADER ───────────────────────────────────────────────── -->
+        <div>
+            <h1 class="text-xl font-semibold text-gray-900 tracking-tight">
+                Generación de compras
+            </h1>
+            <p class="text-xs text-gray-400 mt-0.5">
+                Acciones exclusivas del Administrador de Bodegas · sin bandeja propia
+            </p>
+        </div>
+
+        <!-- ── PANEL TRIMESTRAL ─────────────────────────────────────────── -->
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                    <lucide-icon [img]="CalendarClock" class="w-5 h-5 text-slate-600"></lucide-icon>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h2 class="text-sm font-semibold text-gray-900">Compra trimestral automática</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        Calcula el consumo promedio de los últimos 3 meses por bodega y genera una compra
+                        (en estado <strong>Aprobada</strong>, lista para mesa de trabajo) por cada bodega con
+                        necesidad detectada.
+                    </p>
+                    <button (click)="confirmarGenerarTrimestral()" [disabled]="generandoTrimestral()" class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs
+                               font-medium text-white bg-slate-700 hover:bg-slate-800 transition
+                               disabled:opacity-50 shadow-sm">
+                        <lucide-icon [img]="Zap" class="w-3.5 h-3.5"></lucide-icon>
+                        {{ generandoTrimestral() ? 'Generando...' : 'Generar compras trimestrales' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Resultado -->
+            <div *ngIf="ultimoResultado() !== null" class="mt-4 border-t border-gray-100 pt-3">
+                <div *ngIf="ultimoResultado()!.length === 0" class="flex items-center gap-2 text-xs text-gray-500">
+                    <lucide-icon [img]="PackageSearch" class="w-4 h-4"></lucide-icon>
+                    No se generó ninguna compra — existencia suficiente en todas las bodegas.
+                </div>
+
+                <div *ngIf="ultimoResultado()!.length > 0" class="space-y-1.5">
+                    <p class="text-xs font-medium text-gray-600 mb-2">
+                        {{ ultimoResultado()!.length }} compra(s) generada(s):
+                    </p>
+                    <button *ngFor="let c of ultimoResultado(); trackBy: trackByCompraGenerada"
+                        (click)="irAMesaTrabajo(c.id_compra)" class="w-full flex items-center justify-between px-3 py-2 rounded-lg border
+                               border-gray-200 hover:bg-slate-50 transition text-left">
+                        <span class="text-xs text-gray-700">
+                            Compra #{{ c.id_compra }} ·
+                            <span class="text-gray-400">{{ c.lineas }} línea(s)</span>
+                        </span>
+                        <lucide-icon [img]="ArrowRight" class="w-3.5 h-3.5 text-indigo-500"></lucide-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── PANEL EXTRAORDINARIA ─────────────────────────────────────── -->
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
+                    <lucide-icon [img]="Zap" class="w-5 h-5 text-orange-600"></lucide-icon>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h2 class="text-sm font-semibold text-gray-900">Compra extraordinaria directa</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        Crea una compra sin solicitud previa para cualquier bodega. Siempre nace en
+                        <strong>Requiere Autorización</strong> — Gerencia/Financiero debe aprobarla antes de
+                        pasar a mesa de trabajo.
+                    </p>
+                    <button (click)="abrirModalExtraordinaria()" class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs
+                               font-medium text-white bg-orange-600 hover:bg-orange-700 transition shadow-sm">
+                        <lucide-icon [img]="Zap" class="w-3.5 h-3.5"></lucide-icon>
+                        Nueva compra extraordinaria
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── NOTA ──────────────────────────────────────────────────────── -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+            <div class="flex items-start gap-2.5">
+                <lucide-icon [img]="Info" class="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5"></lucide-icon>
+                <p class="text-xs text-blue-800">
+                    Ambas acciones son exclusivas del Administrador de Bodegas. Las compras generadas aparecen
+                    en <strong>Mesa de trabajo</strong> (Trimestral) o en <strong>Autorización</strong>
+                    (Extraordinaria) — no tienen un listado propio en esta pantalla.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL -->
+<app-modal-crear-extraordinaria *ngIf="mostrarModalExtraordinaria()" (cerrar)="cerrarModalExtraordinaria()"
+    (creada)="onExtraordinariaCreada()">
+</app-modal-crear-extraordinaria>
