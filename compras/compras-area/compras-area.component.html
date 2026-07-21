@@ -1,0 +1,233 @@
+<div class="min-h-screen bg-gray-100">
+    <div class="mx-auto px-4 py-5 space-y-4">
+
+        <!-- ── PAGE HEADER ───────────────────────────────────────────────── -->
+        <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h1 class="text-xl font-semibold text-gray-900 tracking-tight">
+                        Compras · Área
+                    </h1>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs
+                                 font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                        <lucide-icon [img]="ShoppingCart" class="w-3 h-3"></lucide-icon>
+                        Cualquier usuario → Encargado de área
+                    </span>
+                </div>
+                <p class="text-xs text-gray-400 mt-0.5">
+                    Solicitudes de compra de bodegas de área ·
+                    <span class="text-gray-600 font-medium">{{ totalCompras() }} registros</span>
+                </p>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button (click)="refrescarDatos()" [disabled]="cargando()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs
+                           font-medium border border-gray-300 bg-white text-gray-600
+                           hover:bg-gray-50 transition disabled:opacity-50 shadow-sm">
+                    <lucide-icon [img]="RefreshCw" class="w-3.5 h-3.5" [class.animate-spin]="cargando()"></lucide-icon>
+                    {{ cargando() ? 'Actualizando...' : 'Actualizar' }}
+                </button>
+                <button (click)="abrirModalCrear()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs
+                           font-medium text-white bg-blue-600 hover:bg-blue-700 transition shadow-sm">
+                    <lucide-icon [img]="Plus" class="w-3.5 h-3.5"></lucide-icon>
+                    Nueva solicitud
+                </button>
+            </div>
+        </div>
+
+        <!-- ── ESTADÍSTICAS ──────────────────────────────────────────────── -->
+        <div class="grid grid-cols-2 gap-3">
+            <div
+                class="bg-white border border-gray-200 rounded-xl shadow-sm px-3 py-2.5 flex items-center justify-between">
+                <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total</span>
+                <span class="text-lg font-semibold text-gray-900">{{ totalCompras() }}</span>
+            </div>
+            <div
+                class="bg-white border border-gray-200 rounded-xl shadow-sm px-3 py-2.5 flex items-center justify-between">
+                <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Por gestionar</span>
+                <span class="text-lg font-semibold text-amber-700">{{ totalSolicitadas() }}</span>
+            </div>
+        </div>
+
+        <!-- ── COMMAND BAR ───────────────────────────────────────────────── -->
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm
+                    flex items-center gap-3 px-3 py-2 flex-wrap">
+
+            <!-- Búsqueda -->
+            <div class="relative flex-1 min-w-48 max-w-xs">
+                <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                    <lucide-icon [img]="Filter" class="w-3.5 h-3.5 text-gray-400"></lucide-icon>
+                </div>
+                <input type="text" [value]="filtroTexto()" (input)="actualizarFiltroTexto($event)"
+                    placeholder="Buscar por bodega..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded border border-gray-300
+                           focus:outline-none focus:ring-1 focus:ring-blue-500
+                           focus:border-blue-500 text-gray-700 placeholder:text-gray-400
+                           bg-white transition" />
+            </div>
+
+            <div class="hidden sm:block h-5 w-px bg-gray-200"></div>
+
+            <!-- Estado -->
+            <select (change)="actualizarFiltroEstado($event)" class="text-xs border border-gray-300 rounded px-2 py-1.5 bg-white
+                       text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500
+                       focus:border-blue-500 transition">
+                <option value="">Todos los estados</option>
+                <option *ngFor="let e of opcionesEstado" [value]="e.id">{{ e.nombre }}</option>
+            </select>
+
+            <button *ngIf="hayFiltrosActivos()" (click)="limpiarFiltros()" class="inline-flex items-center px-2.5 py-1.5 rounded text-xs font-medium
+                       text-gray-500 bg-gray-50 border border-gray-200
+                       hover:bg-gray-100 transition whitespace-nowrap">
+                Limpiar
+            </button>
+
+            <!-- Info resultados -->
+            <div class="ml-auto hidden md:block text-xs text-gray-400">
+                <span class="text-gray-600 font-medium">{{ compras().length }}</span>
+                de <span class="text-gray-600 font-medium">{{ totalCompras() }}</span>
+            </div>
+        </div>
+
+        <!-- ── TABLA ─────────────────────────────────────────────────────── -->
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+
+            <div *ngIf="cargando()" class="p-10 text-center">
+                <div class="inline-block animate-spin rounded-full h-8 w-8
+                            border-4 border-blue-600 border-t-transparent"></div>
+                <p class="mt-3 text-xs text-gray-400">Cargando solicitudes...</p>
+            </div>
+
+            <div *ngIf="!cargando() && compras().length === 0" class="p-10 text-center">
+                <div class="flex flex-col items-center gap-2 text-gray-400">
+                    <lucide-icon [img]="ShoppingCart" class="w-8 h-8"></lucide-icon>
+                    <p class="text-sm font-medium text-gray-900">Sin solicitudes</p>
+                    <p class="text-xs text-gray-400 mb-2">
+                        {{ hayFiltrosActivos() ? 'No hay resultados para los filtros aplicados'
+                        : 'Aún no hay solicitudes de compra de área' }}
+                    </p>
+                    <button *ngIf="!hayFiltrosActivos()" (click)="abrirModalCrear()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
+                               text-white bg-blue-600 rounded hover:bg-blue-700 transition">
+                        <lucide-icon [img]="Plus" class="w-3.5 h-3.5"></lucide-icon>
+                        Crear primera solicitud
+                    </button>
+                </div>
+            </div>
+
+            <div *ngIf="!cargando() && compras().length > 0" class="overflow-x-auto">
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-200 bg-slate-50">
+                            <th class="px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                                Bodega</th>
+                            <th class="px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                                Líneas</th>
+                            <th class="px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                                Solicitante</th>
+                            <th
+                                class="px-3 py-2.5 text-center text-xs font-medium uppercase tracking-wide text-gray-500 w-36">
+                                Estado</th>
+                            <th class="px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                                Fecha</th>
+                            <th
+                                class="px-3 py-2.5 text-center text-xs font-medium uppercase tracking-wide text-gray-500 w-28">
+                                Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr *ngFor="let c of compras(); trackBy: trackByCompra" class="hover:bg-slate-50 transition">
+
+                            <!-- Bodega -->
+                            <td class="px-3 py-2.5">
+                                <span class="text-xs font-medium text-gray-800">{{ c.bodega }}</span>
+                            </td>
+
+                            <!-- Líneas (preview) -->
+                            <td class="px-3 py-2.5">
+                                <div class="flex flex-col gap-0.5 max-w-xs">
+                                    <span *ngFor="let l of c.lineas.slice(0, 2)" class="text-xs text-gray-600 truncate">
+                                        {{ l.producto }}
+                                        <span class="text-gray-400">
+                                            ({{ l.cantidad_solicitada }} {{ l.abreviatura }})
+                                        </span>
+                                    </span>
+                                    <span *ngIf="c.total_lineas > 2" class="text-xs text-gray-400">
+                                        +{{ c.total_lineas - 2 }} más
+                                    </span>
+                                </div>
+                            </td>
+
+                            <!-- Solicitante -->
+                            <td class="px-3 py-2.5">
+                                <span class="text-xs text-gray-700">{{ c.nombre_solicitante || c.id_usuario_solicitante
+                                    }}</span>
+                            </td>
+
+                            <!-- Estado -->
+                            <td class="px-3 py-2.5 text-center">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                                    [class]="getEstadoClase(c.id_estado)">
+                                    {{ c.estado }}
+                                </span>
+                            </td>
+
+                            <!-- Fecha -->
+                            <td class="px-3 py-2.5 text-xs text-gray-500">
+                                {{ c.created_at | date:'dd/MM/yyyy HH:mm' }}
+                            </td>
+
+                            <!-- Acciones -->
+                            <td class="px-3 py-2.5">
+                                <div class="flex items-center justify-center gap-1">
+                                    <ng-container *ngIf="puedeGestionar(c); else otrasAcciones">
+                                        <button (click)="confirmarAprobar(c)" title="Aprobar"
+                                            class="p-1.5 text-green-600 hover:bg-green-50 rounded transition">
+                                            <lucide-icon [img]="Check" class="w-3.5 h-3.5"></lucide-icon>
+                                        </button>
+                                        <button (click)="confirmarRechazar(c)" title="Rechazar"
+                                            class="p-1.5 text-red-600 hover:bg-red-50 rounded transition">
+                                            <lucide-icon [img]="X" class="w-3.5 h-3.5"></lucide-icon>
+                                        </button>
+                                    </ng-container>
+                                    <ng-template #otrasAcciones>
+                                        <button *ngIf="puedeVerMesaTrabajo(c)" (click)="irAMesaTrabajo(c)"
+                                            title="Ver mesa de trabajo"
+                                            class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition">
+                                            <lucide-icon [img]="Eye" class="w-3.5 h-3.5"></lucide-icon>
+                                        </button>
+                                        <span *ngIf="!puedeVerMesaTrabajo(c)" class="text-xs text-gray-300">—</span>
+                                    </ng-template>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="flex items-center px-3 py-2.5 border-t border-gray-100 bg-slate-50 text-xs text-gray-400">
+                    Mostrando <span class="text-gray-600 font-medium mx-1">{{ compras().length }}</span>
+                    solicitud{{ compras().length !== 1 ? 'es' : '' }}
+                </div>
+            </div>
+        </div>
+
+        <!-- ── NOTA ──────────────────────────────────────────────────────── -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+            <div class="flex items-start gap-2.5">
+                <lucide-icon [img]="Info" class="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5"></lucide-icon>
+                <div class="text-blue-800">
+                    <p class="text-xs font-medium mb-1">Información importante:</p>
+                    <ul class="text-xs list-disc list-inside space-y-0.5 text-blue-700">
+                        <li>Solo el encargado exacto de la bodega de área puede aprobar o rechazar.</li>
+                        <li>Al fijar el último precio en la mesa de trabajo, las altas se generan
+                            automáticamente (el encargado aprueba y recibe, es la misma persona).</li>
+                        <li>El rechazo requiere un comentario con el motivo.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL -->
+<app-modal-crear-solicitud-area *ngIf="mostrarModal()" (cerrar)="cerrarModal()" (creada)="onSolicitudCreada()">
+</app-modal-crear-solicitud-area>
